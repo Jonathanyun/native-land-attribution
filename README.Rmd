@@ -21,6 +21,7 @@ library(ggmap) # easy interface to Google Geocode API
 #### Parse Zip Code lookup table from LA County's official PDF  
 Using Tabulizer library to extract tables from a PDF, then previewing the data.  
 ```{r}
+
 ## Parse the Zip code lookup table from LA County's PDF at: http://file.lacounty.gov/SDSInter/lac/1031552_MasterZipCodes.pdf
 zips <- extract_tables("http://file.lacounty.gov/SDSInter/lac/1031552_MasterZipCodes.pdf")
 
@@ -38,6 +39,7 @@ Header and column detection were a little problematic on a few pages, but the er
 + Flag areas that are officially part of the City of LA  
   
 ```{r}
+
 ## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns
 ## of the listed matrices, so let's row bind the first two columns of all the matrices
 zips_df <- data.frame()
