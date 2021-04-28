@@ -10,7 +10,7 @@ Native Land Attribution Quickie for Hack for LA
     library(httr) # for raw API calls
     library(ggmap) # easy interface to Google Geocode API
 
-#### Parse Zip Code lookup table from LA County’s official PDF
+### Parse Zip Code lookup table from LA County’s official PDF
 
 Using Tabulizer library to extract tables from a PDF, then previewing
 the data.
@@ -63,19 +63,20 @@ the data.
     ## [5,] "91305 Canoga Park (City of LA)" "X"  ""  
     ## [6,] "91306 Winnetka (City of LA)"    "X"  ""
 
-#### Clean up, normalize, and merge zip tables
+### Clean up, normalize, and merge zip tables
 
 Header and column detection were a little problematic on a few pages,
 but the errors fall within a limited range of classes and the data is
-still usable. Therefore, let’s just trim to what we need. This
-involves…  
-+ Grabbing only the first two columns per table (given the commonality
-between the errors)  
-+ Remove all rows that don’t start with a zip code  
-+ For all those rows with zip and area name merged, split the text and
-replace  
-+ Flag areas that are officially part of the City of LA
+still usable. Therefore, let’s just trim to what we need. This involves…
 
+1.  Grabbing only the first two columns per table (given the commonality
+    between the errors)  
+2.  Remove all rows that don’t start with a zip code  
+3.  For all those rows with zip and area name merged, split the text and
+    replace  
+4.  Flag areas that are officially part of the City of LA
+
+–
 
     ## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns of the listed matrices, so let's row bind the first two columns of all the matrices
     zips_df <- data.frame()
@@ -212,7 +213,7 @@ design.
     test            
 
     ## Response [https://native-land.ca/resources/api-docs/?maps=languages%2Cterritories%3Fpositions%3D33.9697897%2C-118.2468148]
-    ##   Date: 2021-04-28 22:21
+    ##   Date: 2021-04-28 22:25
     ##   Status: 403
     ##   Content-Type: text/html; charset=UTF-8
     ##   Size: 26.5 kB
