@@ -1,0 +1,115 @@
+---
+title: "Native Land Attribution Quickie for Hack for LA"
+author: Jude Calvillo
+date: March 22, 2005
+output: md_document
+---
+
+## Native Land Attribution Quickie for Hack for LA
+
+```{r warning=F, message=F}
+## Load libraries
+library(tabulizer) # for extracting tables from PDFs
+library(jsonlite) # for neatly converting JSON to dataframes
+library(stringr) # for string splitting
+library(dplyr) # for data transformations/aggregations
+library(ggplot2) # for plotting
+library(httr) # for raw API calls
+library(ggmap) # easy interface to Google Geocode API
+```
+
+#### Parse Zip Code lookup table from LA County's official PDF  
+Using Tabulizer library to extract tables from a PDF, then previewing the data.  
+```{r}
+## Parse the Zip code lookup table from LA County's PDF at: http://file.lacounty.gov/SDSInter/lac/1031552_MasterZipCodes.pdf
+zips <- extract_tables("http://file.lacounty.gov/SDSInter/lac/1031552_MasterZipCodes.pdf")
+
+## Preview
+head(zips[[1]])
+head(zips[[2]])
+head(zips[[7]])
+```
+
+#### Clean up, normalize, and merge zip tables  
+Header and column detection were a little problematic on a few pages, but the errors fall within a limited range of classes and the data is still usable. Therefore, let's just trim to what we need. This involves...    
++ Grabbing only the first two columns per table (given the commonality between the errors)  
++ Remove all rows that don't start with a zip code  
++ For all those rows with zip and area name merged, split the text and replace  
++ Flag areas that are officially part of the City of LA  
+```{r}
+## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns
+## of the listed matrices, so let's row bind the first two columns of all the matrices
+zips_df <- data.frame()
+for(i in 1:length(zips)){
+    zip_page <- as.data.frame(zips[i])[,c(1:2)]
+    zips_df <- rbind(zips_df, zip_page)
+}
+
+## Pretty the names and remove rows that don't start with 5 numbers, then preview
+names(zips_df) <- c("zip","area_name")
+zips_df <- zips_df[grep("^[0-9][0-9][0-9][0-9][0-9].*", as.character(zips_df$zip)),]
+head(zips_df)
+tail(zips_df)
+
+## How many rows have zip and area name merged?
+zips_df$zip <- as.character(zips_df$zip)
+zips_df$area_name <- as.character(zips_df$area_name)
+length(zips_df$zip[grep(" [aA-zZ]", zips_df$zip)])
+
+## For all those rows with zip and area name merged, split the text and replace
+zips_df[grep(" [aA-zZ]", zips_df$zip),] <- str_split_fixed(zips_df$zip[grep(" [aA-zZ]", zips_df$zip)], " ", n = 2)
+dim(zips_df)
+
+## Flag whether an area is in the "City of LA" (vs in-line text), to clean and lean things out
+zips_df$LA_city <- grepl("City of LA", zips_df$area_name, ignore.case = T)
+zips_df$area_name <- gsub("\\(City of LA\\)| \\(City of LA\\)", "", zips_df$area_name, ignore.case = T)
+
+## Preview final data
+head(zips_df)
+tail(zips_df)
+
+```
+
+#### Geocode (lat, lon) L.A. County zips using Google's Geocoding API  
+Unfortunately, this API is rate-limited, so we'll factor that into our design.  
+```{r}
+if(!file.exists("dat/los-angeles_county_zip-codes_lat-lon.csv")){
+  
+    ## Grab my Google Geocode API key and register it with GGmaps, my easy interface to Google Maps family of APIs
+    geo_key <- readRDS("geo_key.RDS")
+    register_google(geo_key)
+    
+    ## Run zips through Geocode API call and keep lat/lon as new column values per zip
+    zips_df[, c("lon", "lat")] <- geocode(zips_df$zip, output = "latlon")
+    
+    ## Save table for later use
+    write.csv(zips_df, "dat/los-angeles_county_zip-codes_lat-lon.csv", row.names = F)
+    
+} else {
+  
+    ## Let user know we've already got the data and therefore don't need to call the API
+    print("Zip to Lat/Lon lookup table already exists. Skipping API call, then previewing data...")
+  
+    ## Get existing data, if it's there
+    zips_df <- read.csv("dat/los-angeles_county_zip-codes_lat-lon.csv", stringsAsFactors = F)
+  
+}
+
+## Preview the data
+head(zips_df)
+tail(zips_df)
+
+## Any NAs?
+print("Possible problem zips, for inspection:")
+zips_df[is.na(zips_df$lon),]
+
+
+```
+
+#### Send lat, lons to Native-land.ca API for list of Native lands LA County currently covers  
+```{r}
+## Test API call
+test <- GET(paste0("https://native-land.ca/api/index.php?maps=languages,territories?positions=", zips_df$lat[1], ",", zips_df$lon[1]))
+test            
+```
+
