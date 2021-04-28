@@ -76,8 +76,8 @@ between the errors)
 replace  
 + Flag areas that are officially part of the City of LA
 
-    ## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns
-    ## of the listed matrices, so let's row bind the first two columns of all the matrices
+
+    ## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns of the listed matrices, so let's row bind the first two columns of all the matrices
     zips_df <- data.frame()
     for(i in 1:length(zips)){
         zip_page <- as.data.frame(zips[i])[,c(1:2)]
@@ -212,7 +212,7 @@ design.
     test            
 
     ## Response [https://native-land.ca/resources/api-docs/?maps=languages%2Cterritories%3Fpositions%3D33.9697897%2C-118.2468148]
-    ##   Date: 2021-04-28 22:10
+    ##   Date: 2021-04-28 22:21
     ##   Status: 403
     ##   Content-Type: text/html; charset=UTF-8
     ##   Size: 26.5 kB

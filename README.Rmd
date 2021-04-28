@@ -37,11 +37,9 @@ Header and column detection were a little problematic on a few pages, but the er
 + Remove all rows that don't start with a zip code  
 + For all those rows with zip and area name merged, split the text and replace  
 + Flag areas that are officially part of the City of LA  
-  
-```{r}
 
-## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns
-## of the listed matrices, so let's row bind the first two columns of all the matrices
+```{r}
+## Generally, between the different types of errors we're seeing, the data we need is in the first 2 columns of the listed matrices, so let's row bind the first two columns of all the matrices
 zips_df <- data.frame()
 for(i in 1:length(zips)){
     zip_page <- as.data.frame(zips[i])[,c(1:2)]
