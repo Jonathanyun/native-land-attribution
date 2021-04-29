@@ -151,7 +151,7 @@ still usable. Therefore, let’s just trim to what we need. This involves…
 Unfortunately, this API is rate-limited, so we’ll factor that into our
 design.
 
-    if(!file.exists("dat/los-angeles_county_zip-codes_lat-lon.csv")){
+    if(!file.exists("dat/los-angeles-county_zip-codes_lat-lon.csv")){
       
         ## Grab my Google Geocode API key and register it with GGmaps, my easy interface to Google Maps family of APIs
         geo_key <- readRDS("geo_key.RDS")
@@ -169,7 +169,7 @@ design.
         print("Zip to Lat/Lon lookup table already exists. Skipping API call, then previewing data...")
       
         ## Get existing data, if it's there
-        zips_df <- read.csv("dat/los-angeles_county_zip-codes_lat-lon.csv", stringsAsFactors = F)
+        zips_df <- read.csv("dat/los-angeles-county_zip-codes_lat-lon.csv", stringsAsFactors = F)
       
     }
 
@@ -206,25 +206,66 @@ design.
     ##      zip        area_name LA_city lon lat
     ## 79 90080 Airport Worldway    TRUE  NA  NA
 
-#### Send lat, lons to Native-land.ca API for list of Native lands LA County currently covers
+#### Send lat, lons to Native-land.ca API to get Native American lands and languages each area covers
 
-    ## Test API call
-    test <- GET(paste0("https://native-land.ca/api/index.php?maps=languages,territories?positions=", zips_df$lat[1], ",", zips_df$lon[1]))
-    test            
+For each lat, lon combo, we ping Native-land.ca’s API to get the Native
+American lands that once
 
-    ## Response [https://native-land.ca/resources/api-docs/?maps=languages%2Cterritories%3Fpositions%3D33.9697897%2C-118.2468148]
-    ##   Date: 2021-04-28 22:25
-    ##   Status: 403
-    ##   Content-Type: text/html; charset=UTF-8
-    ##   Size: 26.5 kB
-    ## <!DOCTYPE html>
-    ## <html lang="en">
-    ## <head>
-    ## <meta charset="utf-8">
-    ## <meta name="viewport" content="width=device-width, initial-scale=1">
-    ## <link rel="shortcut icon" href="https://native-land.ca/wp/wp-content/themes/N...
-    ## <title>Native-Land.ca | Our home on native land</title>
-    ## <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    ## <meta charset="utf-8">
-    ## <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-    ## ...
+    ## Add empty territories and languages fields for now
+    zips_df$native_territories <- NA
+    zips_df$native_languages <- NA
+
+    ## For each lat, lon combo, call the API
+    if(!file.exists("dat/los-angeles-county_native-american-lands.csv")){
+      
+        for(i in 1:length(zips_df$zip)){
+      
+            if(!is.na(zips_df$lon[i])){
+              
+              
+              api_resp <- GET("https://native-land.ca/api/index.php", 
+                              query = list(maps = "languages,territories", position = paste0(zips_df$lat[i], ",", zips_df$lon[i])),
+                              add_headers('User-Agent' = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'))
+              api_content <- fromJSON(rawToChar(api_resp$content))$properties
+              zips_df$native_territories[i] <- paste0(api_content$Name[grep("territories", api_content$description)], collapse = ",")
+              zips_df$native_languages[i] <- paste0(api_content$Name[grep("languages", api_content$description)], collapse = ",")
+              
+            } else {
+              
+              print(paste0("Not a valid set of coordinate values for area: ", zips_df$area_name[i], " (", zips_df$zip[i], ").", " Skipping."))
+              
+            }
+        }
+    } else {
+        
+        ## Let user know we've already got the data and therefore don't need to call the API
+        print("Table already exists. Skipping API call, then previewing data...")
+      
+        ## Get existing data, if it's there
+        zips_df <- read.csv("dat/los-angeles-county_native-american-lands.csv", stringsAsFactors = F)
+      
+    }
+
+    ## [1] "Table already exists. Skipping API call, then previewing data..."
+
+    head(zips_df)
+
+    ##     zip              area_name LA_city       lon      lat  native_territories
+    ## 1 90001 Florence/South Central    TRUE -118.2468 33.96979 Chumash,Tongva,Kizh
+    ## 2 90002                  Watts    TRUE -118.2497 33.95111 Chumash,Tongva,Kizh
+    ## 3 90003          South Central    TRUE -118.2731 33.96580 Chumash,Tongva,Kizh
+    ## 4 90004           Hancock Park    TRUE -118.3082 34.07489 Chumash,Tongva,Kizh
+    ## 5 90005              Koreatown    TRUE -118.3097 34.05788 Chumash,Tongva,Kizh
+    ## 6 90006           Pico Heights    TRUE -118.2965 34.04708 Chumash,Tongva,Kizh
+    ##   native_languages
+    ## 1           Tongva
+    ## 2           Tongva
+    ## 3           Tongva
+    ## 4           Tongva
+    ## 5           Tongva
+    ## 6           Tongva
+
+    ## Save to file
+    write.csv(zips_df, "dat/los-angeles-county_native-american-lands.csv", row.names = F)
+
+### [Click to download lookup table of Los Angeles County Zip Codes to Native American Territories and Languages &gt;&gt;](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)

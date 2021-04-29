@@ -1,7 +1,7 @@
 ---
 title: "Native Land Attribution Quickie for Hack for LA"
 author: Jude Calvillo
-date: March 22, 2005
+date: April 29, 2021
 output: md_document
 ---
 
@@ -77,7 +77,7 @@ tail(zips_df)
 #### Geocode (lat, lon) L.A. County zips using Google's Geocoding API  
 Unfortunately, this API is rate-limited, so we'll factor that into our design.  
 ```{r}
-if(!file.exists("dat/los-angeles_county_zip-codes_lat-lon.csv")){
+if(!file.exists("dat/los-angeles-county_zip-codes_lat-lon.csv")){
   
     ## Grab my Google Geocode API key and register it with GGmaps, my easy interface to Google Maps family of APIs
     geo_key <- readRDS("geo_key.RDS")
@@ -95,7 +95,7 @@ if(!file.exists("dat/los-angeles_county_zip-codes_lat-lon.csv")){
     print("Zip to Lat/Lon lookup table already exists. Skipping API call, then previewing data...")
   
     ## Get existing data, if it's there
-    zips_df <- read.csv("dat/los-angeles_county_zip-codes_lat-lon.csv", stringsAsFactors = F)
+    zips_df <- read.csv("dat/los-angeles-county_zip-codes_lat-lon.csv", stringsAsFactors = F)
   
 }
 
@@ -110,10 +110,53 @@ zips_df[is.na(zips_df$lon),]
 
 ```
 
-#### Send lat, lons to Native-land.ca API for list of Native lands LA County currently covers  
+#### Send lat, lons to Native-land.ca API to get Native American lands and languages each area covers  
+For each lat, lon combo, we ping Native-land.ca's API to get the Native American lands that once
 ```{r}
-## Test API call
-test <- GET(paste0("https://native-land.ca/api/index.php?maps=languages,territories?positions=", zips_df$lat[1], ",", zips_df$lon[1]))
-test            
+## Add empty territories and languages fields for now
+zips_df$native_territories <- NA
+zips_df$native_languages <- NA
+
+## For each lat, lon combo, call the API
+if(!file.exists("dat/los-angeles-county_native-american-lands.csv")){
+  
+    for(i in 1:length(zips_df$zip)){
+  
+        if(!is.na(zips_df$lon[i])){
+          
+          
+          api_resp <- GET("https://native-land.ca/api/index.php", 
+                          query = list(maps = "languages,territories", position = paste0(zips_df$lat[i], ",", zips_df$lon[i])),
+                          add_headers('User-Agent' = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'))
+          api_content <- fromJSON(rawToChar(api_resp$content))$properties
+          zips_df$native_territories[i] <- paste0(api_content$Name[grep("territories", api_content$description)], collapse = ",")
+          zips_df$native_languages[i] <- paste0(api_content$Name[grep("languages", api_content$description)], collapse = ",")
+          
+        } else {
+          
+          print(paste0("Not a valid set of coordinate values for area: ", zips_df$area_name[i], " (", zips_df$zip[i], ").", " Skipping."))
+          
+        }
+    }
+} else {
+    
+    ## Let user know we've already got the data and therefore don't need to call the API
+    print("Table already exists. Skipping API call, then previewing data...")
+  
+    ## Get existing data, if it's there
+    zips_df <- read.csv("dat/los-angeles-county_native-american-lands.csv", stringsAsFactors = F)
+  
+}
+
+
+head(zips_df)
+
+## Save to file
+write.csv(zips_df, "dat/los-angeles-county_native-american-lands.csv", row.names = F)
 ```
+
+### [Click to download lookup table of Los Angeles County Zip Codes to Native American Territories and Languages >>](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)
+
+
+
 
