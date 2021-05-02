@@ -153,10 +153,13 @@ head(zips_df)
 
 ## Save to file
 write.csv(zips_df, "dat/los-angeles-county_native-american-lands.csv", row.names = F)
+
+## List the unique tribes across LA county
+print("Unique Native American territories across LA County:")
+unique(na.omit(unlist(strsplit(zips_df$native_territories, ","))))
 ```
 
 ### [Click to download lookup table of Los Angeles County Zip Codes to Native American Territories and Languages >>](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)
-
 
 
 

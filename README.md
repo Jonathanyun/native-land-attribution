@@ -268,4 +268,17 @@ American lands that once
     ## Save to file
     write.csv(zips_df, "dat/los-angeles-county_native-american-lands.csv", row.names = F)
 
+    ## List the unique tribes across LA county
+    print("Unique Native American territories across LA County:")
+
+    ## [1] "Unique Native American territories across LA County:"
+
+    unique(na.omit(unlist(strsplit(zips_df$native_territories, ","))))
+
+    ## [1] "Chumash"                           "Tongva"                           
+    ## [3] "Kizh"                              "Micqanaqa’n"                      
+    ## [5] "Fernandeño Tataviam"               "Acjachemen (Juaneño)"             
+    ## [7] "Payómkawichum (Luiseño)"           "Yuhaviatam/Maarenga’yam (Serrano)"
+    ## [9] "Kitanemuk"
+
 ### [Click to download lookup table of Los Angeles County Zip Codes to Native American Territories and Languages &gt;&gt;](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)
