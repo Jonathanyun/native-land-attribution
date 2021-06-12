@@ -1,5 +1,38 @@
-Native Land Attribution Quickie for Hack for LA
------------------------------------------------
+![](img/header_native-land-los-angeles.png)
+
+Native American Land Attribution for L.A. County
+------------------------------------------------
+
+### Overview
+
+This **\#dataengineering** project, commissioned by [Hack for
+LA](https://www.hackforla.org/) leadership, entails developing a
+reusable pipeline for attributing L.A. County cities/parcels to the
+Native American tribes whose home they once were. In doing so, I
+leverage public resources and semi-unstructured data (in PDFs) to
+deliver an adaptive **\#dataproduct** that can be used for multiple
+purposes.
+
+The steps in this pipeline are as follows, and the code (in **\#R**) is
+below…
+
+1.  Extract/parse city -&gt; zip code [lookup tables from LA County’s
+    official
+    PDF](http://file.lacounty.gov/SDSInter/lac/1031552_MasterZipCodes.pdf)  
+2.  Clean up, normalize, and merge extracted lookup tables  
+3.  Use [Google’s Geocoding
+    API](https://developers.google.com/maps/documentation/geocoding/overview)
+    to get the lat/lons per Zip  
+4.  Query [Native Land Digital’s API](https://native-land.ca/) with to
+    find the Native American peoples (and languages) who originally
+    lived there  
+5.  Deliver the data product (currently in CSV format; can easily push
+    to some DB)
+
+For questions, please feel free to contact: [Jude
+Calvillo](https://www.linkedin.com/in/judecalvillo). Thanks!
+
+------------------------------------------------------------------------
 
     ## Load libraries
     library(tabulizer) # for extracting tables from PDFs
@@ -10,7 +43,7 @@ Native Land Attribution Quickie for Hack for LA
     library(httr) # for raw API calls
     library(ggmap) # easy interface to Google Geocode API
 
-### Parse Zip Code lookup table from LA County’s official PDF
+### Step 1. Parse Zip Code lookup table from LA County’s official PDF
 
 Using Tabulizer library to extract tables from a PDF, then previewing
 the data.
@@ -63,7 +96,7 @@ the data.
     ## [5,] "91305 Canoga Park (City of LA)" "X"  ""  
     ## [6,] "91306 Winnetka (City of LA)"    "X"  ""
 
-### Clean up, normalize, and merge zip tables
+### Step 2. Clean up, normalize, and merge zip tables
 
 Header and column detection were a little problematic on a few pages,
 but the errors fall within a limited range of classes and the data is
@@ -146,7 +179,7 @@ still usable. Therefore, let’s just trim to what we need. This involves…
     ## 490 93590                  Palmdale   FALSE
     ## 491 93591 Palmdale/Lake Los Angeles   FALSE
 
-#### Geocode (lat, lon) L.A. County zips using Google’s Geocoding API
+#### Step 3. Geocode (lat, lon) L.A. County zips using Google’s Geocoding API
 
 Unfortunately, this API is rate-limited, so we’ll factor that into our
 design.
@@ -206,7 +239,7 @@ design.
     ##      zip        area_name LA_city lon lat
     ## 79 90080 Airport Worldway    TRUE  NA  NA
 
-#### Send lat, lons to Native-land.ca API to get Native American lands and languages each area covers
+#### Step 4. Send lat, lons to Native-land.ca API to get Native American lands and languages each area covers
 
 For each lat, lon combo, we ping Native-land.ca’s API to get the Native
 American lands that once
@@ -248,6 +281,7 @@ American lands that once
 
     ## [1] "Table already exists. Skipping API call, then previewing data..."
 
+    ## Preview data
     head(zips_df)
 
     ##     zip              area_name LA_city       lon      lat  native_territories
@@ -265,6 +299,8 @@ American lands that once
     ## 5           Tongva
     ## 6           Tongva
 
+#### Step 5. Deliver the Data Product (CSV format; can push to DB or API if/when required)
+
     ## Save to file
     write.csv(zips_df, "dat/los-angeles-county_native-american-lands.csv", row.names = F)
 
@@ -281,4 +317,13 @@ American lands that once
     ## [7] "Payómkawichum (Luiseño)"           "Yuhaviatam/Maarenga’yam (Serrano)"
     ## [9] "Kitanemuk"
 
-### [Click to download lookup table of Los Angeles County Zip Codes to Native American Territories and Languages &gt;&gt;](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)
+[***Click to download lookup table of Los Angeles County Zip Codes to
+Native American Territories and Languages
+&gt;&gt;***](https://raw.githubusercontent.com/judecalvillo/native-land-attribution/master/dat/los-angeles-county_native-american-lands.csv)
+
+------------------------------------------------------------------------
+
+Thanks!  
+-[Jude C.](https://www.linkedin.com/in/judecalvillo)
+
+![](https://drive.google.com/uc?export=download&id=19O0LHWMrEzDmuVVwQFVBLQYGSf0S-siz)
