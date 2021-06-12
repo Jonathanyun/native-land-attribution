@@ -8,7 +8,7 @@ Native American Land Attribution for L.A. County
 This **\#dataengineering** project, commissioned by [Hack for
 LA](https://www.hackforla.org/) leadership, entails developing a
 reusable pipeline for attributing L.A. County cities/parcels to the
-Native American tribes whose home they once were. In doing so, I
+Native American tribes whose homes they originally were. In doing so, I
 leverage public resources and semi-unstructured data (in PDFs) to
 deliver an adaptive **\#dataproduct** that can be used for multiple
 purposes.
