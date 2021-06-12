@@ -23,9 +23,9 @@ below…
 3.  Use [Google’s Geocoding
     API](https://developers.google.com/maps/documentation/geocoding/overview)
     to get the lat/lons per Zip  
-4.  Query [Native Land Digital’s API](https://native-land.ca/) with to
-    find the Native American peoples (and languages) who originally
-    lived there  
+4.  Query [Native Land Digital’s API](https://native-land.ca/) to find
+    the Native American peoples (and languages) who originally lived
+    there  
 5.  Deliver the data product (currently in CSV format; can easily push
     to some DB)
 
