@@ -1,0 +1,13 @@
+Project Log File 
+
+01/22/2024:
+Cloned the native lands git repo into personal repository from KathrynPanger and reviewed files. Following 
+URLs are helpful for starting the project and may contain redundant information already found in the repo. 
+-- Repo for the .csv files
+https://github.com/KathrynPanger/native-land-attribution
+
+-- Site for the Project 
+https://github.com/hackforla/data-science/issues/45
+
+Goals are debug the problems that KathrynPanger found within the code and then also create more visualizations
+that aid in the initial goal of the project. 
